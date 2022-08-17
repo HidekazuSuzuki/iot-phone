@@ -1,0 +1,238 @@
+<!--
+ * Copyright (c) 2014 IBM Corp.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * and Eclipse Distribution License v1.0 which accompany this distribution.
+ *
+ * The Eclipse Public License is available at
+ *   http://www.eclipse.org/legal/epl-v10.html
+ * and the Eclipse Distribution License is available at
+ *   http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * Contributors:
+ *   Bryan Boyd - Initial implementation 
+ -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>IoT Phone</title>
+    <link rel='stylesheet' href='./device.css' />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+
+<body>
+    <div class="outer-main">
+        <div id="main" class="main">
+            <h1>📱 IoT Phone 📡</h1>
+            <p style="padding-top:10px">
+                <img id="connectionImage" src="./disconnected.svg" class="iot-connected-image"
+                    style="vertical-align:middle">
+                <span id="connection">Disconnected</span>
+            </p>​
+            <h1>MQTT Broker:</h1>
+            <h4>mqtt://public:public@public.cloud.shiftr.io<br>
+                wss://public:public@public.cloud.shiftr.io/mqtt</h4>
+            <h1>MQTT Topic:</h1>
+            <input id="deviceId" type="text" value="nodered">
+            <h1> </h1>
+        </div>
+        <div class="main">
+            <h1>Sensor Data:</h1>
+            <table class="data-table">
+                <tr class="table-title">
+                    <th colspan="3">Movement</th>
+                </tr>
+                <tr class="data-title">
+                    <th>Alpha</th>
+                    <th>Beta</th>
+                    <th>Gamma</th>
+                </tr>
+                <tr>
+                    <td id="alpha">0</td>
+                    <td id="beta">0</td>
+                    <td id="gamma">0</td>
+                </tr>
+            </table>
+            <table class="data-table">
+                <tr class="table-title">
+                    <th colspan="3">Acceleration</th>
+                </tr>
+                <tr class="data-title">
+                    <th>X</th>
+                    <th>Y</th>
+                    <th>Z</th>
+                </tr>
+                <tr>
+                    <td id="accx">0</td>
+                    <td id="accy">0</td>
+                    <td id="accz">0</td>
+                </tr>
+            </table>
+            <!-- <table class="data-table">
+                <tr class="table-title">
+                    <th colspan="2">Location</th>
+                </tr>
+                <tr class="data-title">
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                </tr>
+                <tr>
+                    <td id="lat">0</td>
+                    <td id="lng">0</td>
+                </tr>
+            </table> -->
+        </div>
+        <button id="publishButton" onclick="enableSensors();"
+            style="color:black; font-size:16px ; width:240px; height:60px; background-color:#70AAF0;">Publish sensor
+            data</button>
+        <div class="iot-footer-pad"></div>
+    </div>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js"></script>
+    <script type="text/javascript">
+        var ax = 0, ay = 0, az = 0, oa = 0, ob = 0, og = 0;
+        var client;
+        var isConnected = false;
+        window.lat = 0;
+        window.lng = 0;
+        window.msgCount = 0;
+
+        function enableSensors() {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission().then(function (response) {
+                    if (response === 'granted') {
+                        window.addEventListener("deviceorientation", function (event) {
+                            oa = (event.alpha || 0);
+                            ob = (event.beta || 0);
+                            og = (event.gamma || 0);
+                            if (event.webkitCompassHeading) {
+                                oa = -event.webkitCompassHeading;
+                            }
+                            document.getElementById("alpha").innerHTML = oa.toFixed(2);
+                            document.getElementById("beta").innerHTML = ob.toFixed(2);
+                            document.getElementById("gamma").innerHTML = og.toFixed(2);
+                        });
+                    }
+                }).catch(function (e) { alert(e); });
+            } else {
+                window.addEventListener("deviceorientationabsolute", function (event) {
+                    oa = (event.alpha || 0);
+                    ob = (event.beta || 0);
+                    og = (event.gamma || 0);
+                    document.getElementById("alpha").innerHTML = oa.toFixed(2);
+                    document.getElementById("beta").innerHTML = ob.toFixed(2);
+                    document.getElementById("gamma").innerHTML = og.toFixed(2);
+                });
+            }
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission().then(function (response) {
+                    if (response === 'granted') {
+                        window.addEventListener("devicemotion", function (event) {
+                            ax = parseFloat((event.acceleration.x || 0));
+                            ay = parseFloat((event.acceleration.y || 0));
+                            az = parseFloat((event.acceleration.z || 0));
+                            document.getElementById("accx").innerHTML = ax.toFixed(2);
+                            document.getElementById("accy").innerHTML = ay.toFixed(2);
+                            document.getElementById("accz").innerHTML = az.toFixed(2);
+                        });
+                    }
+                }).catch(function (e) { alert(e); });
+            } else {
+                window.addEventListener("devicemotion", function (event) {
+                    ax = parseFloat((event.accelerationIncludingGravity.x || 0));
+                    ay = parseFloat((event.accelerationIncludingGravity.y || 0));
+                    az = parseFloat((event.accelerationIncludingGravity.z || 0));
+                    document.getElementById("accx").innerHTML = ax.toFixed(2);
+                    document.getElementById("accy").innerHTML = ay.toFixed(2);
+                    document.getElementById("accz").innerHTML = az.toFixed(2);
+                });
+            }
+            /* if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(function (position) {
+                    window.lat = position.coords.latitude;
+                    window.lng = position.coords.longitude;
+                    $("#lat").html(window.lat.toFixed(6));
+                    $("#lng").html(window.lng.toFixed(6));
+                });
+            } */
+            setInterval(publish, 500);
+        }
+
+        function publish() {
+            if (isConnected) {
+                var payload = {
+                    // "name": (new Date()).getTime(),
+                    // "lat": parseFloat(window.lat),
+                    // "lon": parseFloat(window.lng),
+                    "movement": {
+                        "alpha": parseFloat(oa.toFixed(2)),
+                        "beta": parseFloat(ob.toFixed(2)),
+                        "gamma": parseFloat(og.toFixed(2))
+                    },
+                    "acceleration": {
+                        "x": parseFloat(ax.toFixed(2)),
+                        "y": parseFloat(ay.toFixed(2)),
+                        "z": parseFloat(az.toFixed(2))
+                    }
+                };
+                var message = new Paho.MQTT.Message(JSON.stringify(payload));
+                message.destinationName = $('#deviceId').val();
+                console.log(" adsfasdf: " + message.destinationName);
+                try {
+                    client.send(message);
+                    console.log("Published: " + JSON.stringify(payload));
+                    window.msgCount++;
+                    $("#publishButton").html("Published messages: " + window.msgCount);
+                    $("#publishButton").prop("disabled", true);
+                }
+                catch (err) {
+                    isConnected = false;
+                    changeConnectionStatusImage("./disconnected.svg");
+                    document.getElementById("connection").innerHTML = "Disconnected";
+                    setTimeout(connectDevice(client), 1000);
+                }
+            }
+        }
+
+        function onConnectSuccess() {
+            console.log("Connected Successfully!");
+            isConnected = true;
+            changeConnectionStatusImage("./connected.svg");
+            document.getElementById("connection").innerHTML = "Connected";
+        }
+
+        function onConnectFailure() {
+            console.log("Could not connect to MQTT broker! Trying again in one second.");
+            setTimeout(connectDevice(client), 1000);
+        }
+
+        function connectDevice(client) {
+            changeConnectionStatusImage("./connecting.svg");
+            document.getElementById("connection").innerHTML = "Connecting";
+            console.log("Connecting device to MQTT Broker...");
+            client.connect({
+                onSuccess: onConnectSuccess,
+                onFailure: onConnectFailure,
+                userName: "public",
+                password: "public",
+                useSSL: true
+            });
+        }
+
+        $(document).ready(function () {
+            client = new Paho.MQTT.Client("public.cloud.shiftr.io", 443, "");
+            console.log("Attempting connect");
+            connectDevice(client);
+        });
+
+        function changeConnectionStatusImage(image) {
+            document.getElementById("connectionImage").src = image;
+        }
+    </script>
+</body>
+
+</html>

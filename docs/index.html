@@ -34,8 +34,18 @@
                 <span id="connection">Disconnected</span>
             </p>​
             <h1>MQTT Broker:</h1>
-            <h4>mqtt://public:public@public.cloud.shiftr.io<br>
-                wss://public:public@public.cloud.shiftr.io/mqtt</h4>
+            <!-- <h4>mqtt://public:public@public.cloud.shiftr.io<br>
+                wss://public:public@public.cloud.shiftr.io/mqtt</h4> -->
+            <p>
+                <label>FQDN: </label><input id="fqdn" type="text" value="public.cloud.shiftr.io">
+                <label>Port: </label><input id="port" type="text" value="443">
+            </p>
+            <p>
+                <label>User: </label><input id="userName" type="text" value="public">
+                <label>Password: </label><input id="password" type="text" value="public">
+            </p>
+            <button id="connectButton" onclick="connectServer();"
+                style="color:black; font-size:16px ; width:240px; height:60px; background-color:#70AAF0;">Connect MQTT Server</button>
             <h1>MQTT Topic:</h1>
             <input id="deviceId" type="text" value="nodered">
             <h1> </h1>
@@ -211,23 +221,27 @@
         }
 
         function connectDevice(client) {
+            var userName = $('#userName').val();
+            var password = $('#password').val();
             changeConnectionStatusImage("./connecting.svg");
             document.getElementById("connection").innerHTML = "Connecting";
             console.log("Connecting device to MQTT Broker...");
             client.connect({
                 onSuccess: onConnectSuccess,
                 onFailure: onConnectFailure,
-                userName: "public",
-                password: "public",
+                userName: userName,
+                password: password,
                 useSSL: true
             });
         }
 
-        $(document).ready(function () {
-            client = new Paho.MQTT.Client("public.cloud.shiftr.io", 443, "");
+        function connectServer() {
+            var fqdn = $('#fqdn').val();
+            var port = parseInt($('#port').val());
+            client = new Paho.MQTT.Client(fqdn, port, "");
             console.log("Attempting connect");
             connectDevice(client);
-        });
+        };
 
         function changeConnectionStatusImage(image) {
             document.getElementById("connectionImage").src = image;

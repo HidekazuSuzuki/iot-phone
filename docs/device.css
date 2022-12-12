@@ -133,14 +133,8 @@ input#pin{
 	max-height: 60px;
 }
 
-button#connectButton{
-	visibility: hidden;
-	color: #fff;
-	padding: 5px 24px;
-	width: auto;
-	border: 1px #ffffff solid;
-	font-weight: normal;
-	background-color: #1d3649;
+button#connectButton {
+	margin-top: 0.5rem;
 }
 
 

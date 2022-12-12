@@ -128,7 +128,7 @@
                             ob = (event.beta || 0);
                             og = (event.gamma || 0);
                             if (event.webkitCompassHeading) {
-                                oa = -event.webkitCompassHeading;
+                                oa = 360 - event.webkitCompassHeading;
                             }
                             document.getElementById("alpha").innerHTML = oa.toFixed(2);
                             document.getElementById("beta").innerHTML = ob.toFixed(2);

@@ -45,6 +45,14 @@
                 <input id="port" type="text" value="443">
             </p>
             <p>
+                <label>TLS:</label>
+                <input id="tls" type="checkbox" name="tls" value="1">Enable
+            </p>
+            <p>
+                <label>Student ID:</label>
+                <input id="studentId" type="text" value="">
+            </p>
+            <p>
                 <label>User:</label>
                 <input id="userName" type="text" value="public">
             </p>
@@ -55,8 +63,7 @@
             <button id="connectButton" onclick="connectServer();"
                 style="color:black; font-size:16px ; width:240px; height:60px; background-color:#70AAF0;">Connect MQTT Server</button>
             <h1>MQTT Topic:</h1>
-            <input id="deviceId" type="text" value="Student ID">
-            <h1> </h1>
+            <input id="topic" type="text" value="sensor">
         </div>
         <div class="main">
             <h1>Sensor Data:</h1>
@@ -198,7 +205,7 @@
                     }
                 };
                 var message = new Paho.MQTT.Message(JSON.stringify(payload));
-                message.destinationName = $('#deviceId').val();
+                message.destinationName = $('#topic').val();
                 console.log(" adsfasdf: " + message.destinationName);
                 try {
                     client.send(message);
@@ -229,6 +236,7 @@
         }
 
         function connectDevice(client) {
+            var flagTLS = $("#tls").is(':checked');
             var userName = $('#userName').val();
             var password = $('#password').val();
             changeConnectionStatusImage("./connecting.svg");
@@ -239,14 +247,15 @@
                 onFailure: onConnectFailure,
                 userName: userName,
                 password: password,
-                useSSL: true
+                useSSL: flagTLS
             });
         }
 
         function connectServer() {
             var fqdn = $('#fqdn').val();
             var port = parseInt($('#port').val());
-            client = new Paho.MQTT.Client(fqdn, port, "");
+            var studentId = $('#studentId').val();
+            client = new Paho.MQTT.Client(fqdn, port, studentId);
             console.log("Attempting connect");
             connectDevice(client);
         };

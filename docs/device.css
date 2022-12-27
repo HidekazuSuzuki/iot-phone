@@ -50,10 +50,13 @@ input {
 	color: #000
 }
 
-
 input#pin{
 	visibility: hidden;
 	padding: 5px 0px;
+}
+
+select {
+	color: #000
 }
 
 label {

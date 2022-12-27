@@ -43,8 +43,13 @@
                 <input id="port" type="text" value="443">
             </p>
             <p>
-                <label>TLS:</label>
-                <input id="tls" type="checkbox" name="tls" value="1">Enable
+                <label>Protocol:</label>
+                <select id="protocol" onchange="selectProtocol(this.value)" required>
+                    <option value="mqtt" selected>MQTT</option>
+                    <option value="mqtts">MQTT over TLS</option>
+                    <option value="ws">WebSocket</option>
+                    <option value="wss">WebSocket over TLS</option>
+                </select>
             </p>
             <p>
                 <label>Student ID:</label>
@@ -236,6 +241,25 @@
 
         function changeConnectionStatusImage(image) {
             document.getElementById("connectionImage").src = image;
+        }
+
+        function selectProtocol(selected) {
+            var port;
+            switch (selected) {
+                case 'mqtt':
+                    port = 1883;
+                    break;
+                case 'mqtts':
+                    port = 8883;
+                    break;
+                case 'ws':
+                    port = 80;
+                    break;
+                case 'wss':
+                    port = 443;
+                    break;
+            }
+            document.getElementById("port").value = port;
         }
     </script>
 </body>

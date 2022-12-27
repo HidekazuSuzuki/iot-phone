@@ -155,11 +155,6 @@ button#connectButton {
 	max-height: 60px;
 }
 
-button#connectButton {
-	margin-top: 0.5rem;
-}
-
-
 div#maindemo {
 	visibility: hidden;
 }

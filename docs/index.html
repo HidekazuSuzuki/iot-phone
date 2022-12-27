@@ -34,39 +34,40 @@
                 <span id="connection">Disconnected</span>
             </p>​
             <h1>MQTT Broker:</h1>
-            <p>
-                <label>FQDN:</label>
-                <input id="fqdn" type="text" value="public.cloud.shiftr.io">
-            </p>
-            <p>
-                <label>Port:</label>
-                <input id="port" type="text" value="443">
-            </p>
-            <p>
-                <label>Protocol:</label>
-                <select id="protocol" onchange="selectProtocol(this.value)" required>
-                    <option value="mqtt" selected>MQTT</option>
-                    <option value="mqtts">MQTT over TLS</option>
-                    <option value="ws">WebSocket</option>
-                    <option value="wss">WebSocket over TLS</option>
-                </select>
-            </p>
-            <p>
-                <label>Student ID:</label>
-                <input id="studentId" type="text" value="">
-            </p>
-            <p>
-                <label>User:</label>
-                <input id="userName" type="text" value="public">
-            </p>
-            <p>
-                <label>Password:</label>
-                <input id="password" type="text" value="public">
-            </p>
-            <button id="connectButton" onclick="connectServer();"
-                style="color:black; font-size:16px ; width:240px; height:60px; background-color:#70AAF0;">Connect MQTT Server</button>
-            <h1>MQTT Topic:</h1>
-            <input id="topic" type="text" value="sensor">
+            <form id="form">
+                <p>
+                    <label>FQDN:</label>
+                    <input id="fqdn" type="text" value="public.cloud.shiftr.io" required>
+                </p>
+                <p>
+                    <label>Port:</label>
+                    <input id="port" type="text" value="1883" required>
+                </p>
+                <p>
+                    <label>Protocol:</label>
+                    <select id="protocol" onchange="selectProtocol(this.value)" required>
+                        <option value="mqtt" selected>MQTT</option>
+                        <option value="mqtts">MQTT over TLS</option>
+                        <option value="ws">WebSocket</option>
+                        <option value="wss">WebSocket over TLS</option>
+                    </select>
+                </p>
+                <p>
+                    <label>Student ID:</label>
+                    <input id="studentId" type="text" value="" required>
+                </p>
+                <p>
+                    <label>User:</label>
+                    <input id="userName" type="text" value="public">
+                </p>
+                <p>
+                    <label>Password:</label>
+                    <input id="password" type="text" value="public">
+                </p>
+                <button type="button" id="connectButton" onclick="connectServer();" disabled>Connect MQTT Server</button>
+                <h1>MQTT Topic:</h1>
+                <input id="topic" type="text" value="sensor" required>
+            </form>
         </div>
         <div class="main">
             <h1>Sensor Data:</h1>
@@ -101,20 +102,34 @@
                 </tr>
             </table>
         </div>
-        <button id="publishButton" onclick="enableSensors();"
-            style="color:black; font-size:16px ; width:240px; height:60px; background-color:#70AAF0;">Publish sensor
-            data</button>
+        <button type="button" id="publishButton" onclick="enableSensors();">Publish sensor data</button>
         <div class="iot-footer-pad"></div>
     </div>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js"></script>
     <script type="text/javascript">
+        const form = document.getElementById("form");
+        const connectButton = document.getElementById("connectButton");
         var ax = 0, ay = 0, az = 0, oa = 0, ob = 0, og = 0;
         var client;
         var isConnected = false;
-        window.lat = 0;
-        window.lng = 0;
         window.msgCount = 0;
+
+        form.addEventListener("input", update);
+        form.addEventListener("change", update);
+
+        function update() {
+            const isRequired = form.checkValidity();
+            if (isRequired) {
+                connectButton.disabled = false;
+                connectButton.style.opacity = 1;
+                connectButton.style.cursor = "pointer";
+            } else {
+                connectButton.disabled = true;
+                connectButton.style.opacity = 0.2;
+                connectButton.style.cursor = "none";
+            }
+        }
 
         function enableSensors() {
             if (typeof DeviceOrientationEvent.requestPermission === 'function') {

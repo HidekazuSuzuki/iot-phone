@@ -106,7 +106,7 @@
         <div class="iot-footer-pad"></div>
     </div>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script type="text/javascript">
         const form = document.getElementById("form");
         const connectButton = document.getElementById("connectButton");
@@ -186,6 +186,7 @@
 
         function publish() {
             if (isConnected) {
+                var topic = $('#topic').val();
                 var payload = {
                     "movement": {
                         "alpha": parseFloat(oa.toFixed(2)),
@@ -198,60 +199,74 @@
                         "z": parseFloat(az.toFixed(2))
                     }
                 };
-                var message = new Paho.MQTT.Message(JSON.stringify(payload));
-                message.destinationName = $('#topic').val();
-                console.log(" adsfasdf: " + message.destinationName);
-                try {
-                    client.send(message);
-                    console.log("Published: " + JSON.stringify(payload));
-                    window.msgCount++;
-                    $("#publishButton").html("Published messages: " + window.msgCount);
-                    $("#publishButton").prop("disabled", true);
-                }
-                catch (err) {
-                    isConnected = false;
-                    changeConnectionStatusImage("./disconnected.svg");
-                    document.getElementById("connection").innerHTML = "Disconnected";
-                    setTimeout(connectDevice(client), 1000);
-                }
+
+                client.publish(topic, JSON.stringify(payload), (error) => {
+                    if (error) {
+                        console.error(error);
+                    } else {
+                        console.log("Published: " + JSON.stringify(payload));
+                        window.msgCount++;
+                        $("#publishButton").html("Published messages: " + window.msgCount);
+                        $("#publishButton").prop("disabled", true);
+                    }
+                });
             }
         }
 
-        function onConnectSuccess() {
-            console.log("Connected Successfully!");
-            isConnected = true;
-            changeConnectionStatusImage("./connected.svg");
-            document.getElementById("connection").innerHTML = "Connected";
-        }
-
-        function onConnectFailure() {
-            console.log("Could not connect to MQTT broker! Trying again in one second.");
-            setTimeout(connectDevice(client), 1000);
-        }
-
-        function connectDevice(client) {
-            var flagTLS = $("#tls").is(':checked');
-            var userName = $('#userName').val();
-            var password = $('#password').val();
+        function connectBroker() {
+            var url = $('#protocol').val() + '://' + $('#fqdn').val() + ':' + parseInt($('#port').val());
+            var studentId = $('#studentId').val();
+            
             changeConnectionStatusImage("./connecting.svg");
             document.getElementById("connection").innerHTML = "Connecting";
-            console.log("Connecting device to MQTT Broker...");
-            client.connect({
-                onSuccess: onConnectSuccess,
-                onFailure: onConnectFailure,
-                userName: userName,
-                password: password,
-                useSSL: flagTLS
+            console.log("Connecting device to MQTT Broker... (" + url + ")");
+            
+            client = mqtt.connect(url, {
+                protocolId: 'MQIsdp',
+                protocolVersion: 3,
+                clientId: 'mqttjs_' + studentId,
+                clean: true,
+                connectTimeout: 4000,
+                username: $('#userName').val(),
+                password: $('#password').val(),
+                reconnectPeriod: 1000,
             });
-        }
 
-        function connectBroker() {
-            var fqdn = $('#fqdn').val();
-            var port = parseInt($('#port').val());
-            var studentId = $('#studentId').val();
-            client = new Paho.MQTT.Client(fqdn, port, studentId);
-            console.log("Attempting connect");
-            connectDevice(client);
+            client.on('connect', () => {
+                console.log("Connected Successfully!");
+                isConnected = true;
+                changeConnectionStatusImage("./connected.svg");
+                document.getElementById("connection").innerHTML = "Connected";
+            });
+
+            client.on('reconnect', () => {
+                console.log("Starting reconnect...");
+                isConnected = false;
+                changeConnectionStatusImage("./disconnected.svg");
+                document.getElementById("connection").innerHTML = "Reconnecting";
+            });
+
+            client.on('close', () => {
+                console.log("Closed.");
+                isConnected = false;
+                changeConnectionStatusImage("./disconnected.svg");
+                document.getElementById("connection").innerHTML = "Disconnected";
+            });
+
+            client.on('offline', () => {
+                console.log("now offline.");
+                isConnected = false;
+                changeConnectionStatusImage("./disconnected.svg");
+                document.getElementById("connection").innerHTML = "Disconnected";
+            });
+
+            client.on('error', (error) => {
+                console.log("ERROR!");
+                isConnected = false;
+                changeConnectionStatusImage("./disconnected.svg");
+                document.getElementById("connection").innerHTML = "Error! " + error;
+                client.end();
+            });
         };
 
         function changeConnectionStatusImage(image) {

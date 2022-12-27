@@ -34,8 +34,6 @@
                 <span id="connection">Disconnected</span>
             </p>​
             <h1>MQTT Broker:</h1>
-            <!-- <h4>mqtt://public:public@public.cloud.shiftr.io<br>
-                wss://public:public@public.cloud.shiftr.io/mqtt</h4> -->
             <p>
                 <label>FQDN:</label>
                 <input id="fqdn" type="text" value="public.cloud.shiftr.io">
@@ -97,19 +95,6 @@
                     <td id="accz">0</td>
                 </tr>
             </table>
-            <!-- <table class="data-table">
-                <tr class="table-title">
-                    <th colspan="2">Location</th>
-                </tr>
-                <tr class="data-title">
-                    <th>Latitude</th>
-                    <th>Longitude</th>
-                </tr>
-                <tr>
-                    <td id="lat">0</td>
-                    <td id="lng">0</td>
-                </tr>
-            </table> -->
         </div>
         <button id="publishButton" onclick="enableSensors();"
             style="color:black; font-size:16px ; width:240px; height:60px; background-color:#70AAF0;">Publish sensor
@@ -176,23 +161,12 @@
                     document.getElementById("accz").innerHTML = az.toFixed(2);
                 });
             }
-            /* if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(function (position) {
-                    window.lat = position.coords.latitude;
-                    window.lng = position.coords.longitude;
-                    $("#lat").html(window.lat.toFixed(6));
-                    $("#lng").html(window.lng.toFixed(6));
-                });
-            } */
             setInterval(publish, 500);
         }
 
         function publish() {
             if (isConnected) {
                 var payload = {
-                    // "name": (new Date()).getTime(),
-                    // "lat": parseFloat(window.lat),
-                    // "lon": parseFloat(window.lng),
                     "movement": {
                         "alpha": parseFloat(oa.toFixed(2)),
                         "beta": parseFloat(ob.toFixed(2)),

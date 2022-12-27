@@ -64,7 +64,7 @@
                     <label>Password:</label>
                     <input id="password" type="text" value="public">
                 </p>
-                <button type="button" id="connectButton" onclick="connectServer();" disabled>Connect MQTT Server</button>
+                <button type="button" id="connectButton" onclick="connectBroker();" disabled>Connect MQTT Broker</button>
                 <h1>MQTT Topic:</h1>
                 <input id="topic" type="text" value="sensor" required>
             </form>
@@ -245,7 +245,7 @@
             });
         }
 
-        function connectServer() {
+        function connectBroker() {
             var fqdn = $('#fqdn').val();
             var port = parseInt($('#port').val());
             var studentId = $('#studentId').val();

@@ -34,19 +34,17 @@
                 <span id="connection">Disconnected</span>
             </p>​
             <h1>MQTT Broker:</h1>
-            <!-- <h4>mqtt://public:public@public.cloud.shiftr.io<br>
-                wss://public:public@public.cloud.shiftr.io/mqtt</h4> -->
             <p>
                 <label>FQDN:</label>
-                <input id="fqdn" type="text" value="public.cloud.shiftr.io">
+                <input id="fqdn" type="text" value="broker.emqx.io">
             </p>
             <p>
                 <label>Port:</label>
-                <input id="port" type="text" value="443">
+                <input id="port" type="text" value="8084">
             </p>
             <p>
                 <label>TLS:</label>
-                <input id="tls" type="checkbox" name="tls" value="1">Enable
+                <input id="tls" type="checkbox" name="tls" value="TLSenabled" checked>Enable
             </p>
             <p>
                 <label>Student ID:</label>
@@ -54,16 +52,16 @@
             </p>
             <p>
                 <label>User:</label>
-                <input id="userName" type="text" value="public">
+                <input id="userName" type="text" value="">
             </p>
             <p>
                 <label>Password:</label>
-                <input id="password" type="text" value="public">
+                <input id="password" type="text" value="">
             </p>
             <button id="connectButton" onclick="connectServer();"
                 style="color:black; font-size:16px ; width:240px; height:60px; background-color:#70AAF0;">Connect MQTT Server</button>
             <h1>MQTT Topic:</h1>
-            <input id="topic" type="text" value="sensor">
+            <input id="topic" type="text" value="ict2023/123456789/smartphone/sensor">
         </div>
         <div class="main">
             <h1>Sensor Data:</h1>

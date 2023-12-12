@@ -110,16 +110,18 @@
             </table> -->
         </div>
         <button id="publishButton" onclick="enableSensors();"
-            style="color:black; font-size:16px ; width:240px; height:60px; background-color:#70AAF0;">Publish sensor
-            data</button>
+            style="color:black; font-size:16px ; width:240px; height:60px; background-color:#70AAF0;">Publish sensor data</button>
+            <button id="stopButton" onclick="stopPublishing();"
+                style="color:black; font-size:16px ; width:240px; height:60px; background-color:#70AAF0;">Stop publishing</button>
         <div class="iot-footer-pad"></div>
     </div>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.js"></script>
     <script type="text/javascript">
         var ax = 0, ay = 0, az = 0, oa = 0, ob = 0, og = 0;
         var client;
         var isConnected = false;
+        var intervalId;
         window.lat = 0;
         window.lng = 0;
         window.msgCount = 0;
@@ -182,7 +184,7 @@
                     $("#lng").html(window.lng.toFixed(6));
                 });
             } */
-            setInterval(publish, 500);
+            intervalId = setInterval(publish, 500);
         }
 
         function publish() {
@@ -202,7 +204,7 @@
                         "z": parseFloat(az.toFixed(2))
                     }
                 };
-                var message = new Paho.MQTT.Message(JSON.stringify(payload));
+                var message = new Paho.Message(JSON.stringify(payload));
                 message.destinationName = $('#topic').val();
                 console.log(" adsfasdf: " + message.destinationName);
                 try {
@@ -219,6 +221,10 @@
                     setTimeout(connectDevice(client), 1000);
                 }
             }
+        }
+
+        function stopPublishing() {
+            clearInterval(intervalId);
         }
 
         function onConnectSuccess() {
@@ -253,7 +259,7 @@
             var fqdn = $('#fqdn').val();
             var port = parseInt($('#port').val());
             var studentId = $('#studentId').val();
-            client = new Paho.MQTT.Client(fqdn, port, studentId);
+            client = new Paho.Client(fqdn, port, studentId);
             console.log("Attempting connect");
             connectDevice(client);
         };
